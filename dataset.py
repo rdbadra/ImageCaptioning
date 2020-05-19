@@ -5,13 +5,14 @@ from skimage import io, transform
 import numpy as np
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset
-from torchvision import transforms, utils
 from pycocotools.coco import COCO
 from vocabulary import create_vocabulary
+import nltk
+nltk.download('punkt')
 
 
 class CocoDataset(Dataset):
-    """Face Landmarks dataset."""
+    """COCO dataset."""
 
     def __init__(self, json_path, root_dir, transform=None):
         """
@@ -22,6 +23,7 @@ class CocoDataset(Dataset):
                 on a sample.
         """
         self.coco = COCO(json_path)
+        self.vocabulary, self.ids = create_vocabulary(json_path)
         self.root_dir = root_dir
         self.transform = transform
 
@@ -32,15 +34,21 @@ class CocoDataset(Dataset):
         if torch.is_tensor(idx):
             idx = idx.tolist()
 
-        img_name = os.path.join(self.root_dir,
-                                self.landmarks_frame.iloc[idx, 0])
-        image = io.imread(img_name)
-        landmarks = self.landmarks_frame.iloc[idx, 1:]
-        landmarks = np.array([landmarks])
-        landmarks = landmarks.astype('float').reshape(-1, 2)
-        sample = {'image': image, 'landmarks': landmarks}
+        annotation_id = self.ids[idx]
+        caption = self.coco.anns[annotation_id]['caption']
+        image_id = self.coco.anns[annotation_id]['image_id']
+        image_name = self.coco.loadImgs(image_id)[0]['file_name']
+
+        image_name = os.path.join(
+                        self.root_dir,
+                        image_name)
+        image = io.imread(image_name)
+        tokens = nltk.tokenize.word_tokenize(str(caption).lower())
+        
 
         if self.transform:
-            sample = self.transform(sample)
+            sample = self.transform(image)
+
+        sample = {'image': image, 'tokens': tokens}
 
         return sample

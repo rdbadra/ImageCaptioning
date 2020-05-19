@@ -30,7 +30,8 @@ def create_vocabulary(json_path):
         caption = str(coco.anns[id]['caption'])
         tokens = nltk.tokenize.word_tokenize(caption.lower())
         counter.update(tokens)
-    return [word for word, count in counter.items()]
+    vocabulary = [word for word, count in counter.items()]
+    return vocabulary, ids
 
 
 if __name__ == '__main__':

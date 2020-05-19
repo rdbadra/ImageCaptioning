@@ -1,3 +1,4 @@
+from dataset import CocoDataset
 
 
 def main():
