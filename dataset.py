@@ -6,12 +6,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset
 from torchvision import transforms, utils
+from pycocotools.coco import COCO
+from vocabulary import create_vocabulary
 
 
 class CocoDataset(Dataset):
     """Face Landmarks dataset."""
 
-    def __init__(self, csv_file, root_dir, transform=None):
+    def __init__(self, json_path, root_dir, transform=None):
         """
         Args:
             csv_file (string): Path to the csv file with annotations.
@@ -19,12 +21,12 @@ class CocoDataset(Dataset):
             transform (callable, optional): Optional transform to be applied
                 on a sample.
         """
-        self.landmarks_frame = pd.read_csv(csv_file)
+        self.coco = COCO(json_path)
         self.root_dir = root_dir
         self.transform = transform
 
     def __len__(self):
-        return len(self.landmarks_frame)
+        return len(list(self.coco.anns.keys()))
 
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
