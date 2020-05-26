@@ -1,6 +1,5 @@
 import os
 from PIL import Image  
-from pycocotools.coco import COCO
 from collections import Counter
 import nltk
 nltk.download('punkt')
@@ -21,16 +20,15 @@ counter.update(tokens)
 print(counter)
 '''
 
-def create_vocabulary(json_path):
+def create_vocabulary(coco):
     print("creating vocab")
-    coco = COCO(json_path)
     counter = Counter()
     ids = list(coco.anns.keys())
     for id in ids:
         caption = str(coco.anns[id]['caption'])
         tokens = nltk.tokenize.word_tokenize(caption.lower())
         counter.update(tokens)
-    vocabulary = [word for word, count in counter.items()]
+    vocabulary = [word for word, count in counter.items() if count >= 5]
     return vocabulary, ids
 
 
