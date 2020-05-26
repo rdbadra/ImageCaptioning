@@ -23,43 +23,33 @@ class FeatureExtractor(nn.Module):
         # features = self.bn(self.linear(features))
         return features
 
-'''
 class CaptionGenerator(nn.Module):
-    def __init__(self, embedding_dim, hidden_size, vocab_size, num_layers, max_seq_length=20):
+    def __init__(self, embedding_dim, hidden_size, vocab_size, num_layers):
         """Set the hyper-parameters and build the layers."""
         super(CaptionGenerator, self).__init__()
         self.embed = nn.Embedding(vocab_size, embedding_dim)
         self.lstm = nn.LSTM(embedding_dim, hidden_size, num_layers, batch_first=True)
         self.linear = nn.Linear(hidden_size, vocab_size)
-        self.max_seg_length = max_seq_length
-        
-    def forward(self, features, captions, lengths):
-        """Decode image feature vectors and generates captions."""
-        embeddings = self.embed(captions)
-        embeddings = torch.cat((features.unsqueeze(1), embeddings), 1)
-        packed = pack_padded_sequence(embeddings, lengths, batch_first=True) 
-        hiddens, _ = self.lstm(packed)
-        outputs = self.linear(hiddens[0])
-        return outputs
-'''
-class CaptionGenerator(nn.Module):
-    def __init__(self, embedding_dim, hidden_size, vocab_size, num_layers, max_seq_length=20):
-        """Set the hyper-parameters and build the layers."""
-        super(CaptionGenerator, self).__init__()
-        self.embed = nn.Embedding(vocab_size, embedding_dim)
-        self.lstm = nn.LSTM(embedding_dim, hidden_size, num_layers, batch_first=True)
-        self.linear = nn.Linear(hidden_size, vocab_size)
-        self.max_seg_length = max_seq_length
         
     def forward(self, features, captions, lengths):
         """Decode image feature vectors and generates captions."""
         captions = captions[:, :-1]
         embeddings = self.embed(captions)
-        # embeddings = torch.cat((features.unsqueeze(1), embeddings), 1)
-        # packed = pack_padded_sequence(embeddings, lengths, batch_first=True) 
-        # hiddens, _ = self.lstm(features)
         embeddings = torch.cat((features.unsqueeze(1), embeddings), dim=1)
-        # packed = pack_padded_sequence(embeddings, lengths, batch_first=True)
         lstm_out, _ = self.lstm(embeddings)
         outputs = self.linear(lstm_out)
         return outputs
+
+    def sample(self, features, states=None, max_len=20):
+        """Generate captions for an image"""
+        caption = []
+        inputs = features.unsqueeze(1)
+        for i in range(max_len):
+            hiddens, states = self.lstm(inputs, states)
+            outputs = self.linear(hiddens.squeeze(1))
+            _, predicted = outputs.max(1)
+            caption.append(predicted)
+            inputs = self.embed(predicted)
+            inputs = inputs.unsqueeze(1)
+        caption = torch.stack(caption, 1)
+        return caption
