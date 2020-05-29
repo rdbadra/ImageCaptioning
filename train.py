@@ -8,15 +8,19 @@ from torch.nn.utils.rnn import pack_padded_sequence
 import numpy as np
 import os
 from torchvision import transforms
+from tqdm import tqdm
+from evaluation import calculate_bleu
 
 def main(num_epochs=1, data_dir="data/"):
     print("main")
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(f"WORKING WITH: {device}")
-    image_dir = "/home/roberto/Documentos/TFM-UOC/pytorch-tutorial/tutorials/03-advanced/image_captioning/data/"
-    json_path =  image_dir + "annotations/captions_train2014.json"
+    # image_dir = "/home/roberto/Documentos/TFM-UOC/pytorch-tutorial/tutorials/03-advanced/image_captioning/data/"
+    # json_path =  image_dir + "annotations/captions_train2014.json"
+    json_path = "data/annotations/captions_train2014.json"
 
-    root_dir = image_dir + "resized2014"
+
+    root_dir = "data/train2014"
     '''
     data_transforms = {
     'train': transforms.Compose([
@@ -43,10 +47,12 @@ def main(num_epochs=1, data_dir="data/"):
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     '''
-    transform = transforms.Compose([  
-        transforms.ToTensor(), 
-        transforms.Normalize((0.485, 0.456, 0.406), 
-                             (0.229, 0.224, 0.225))])
+    transform = transforms.Compose([
+        transforms.RandomResizedCrop(224),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ])
     
 
     dataset = CocoDataset(
@@ -56,45 +62,51 @@ def main(num_epochs=1, data_dir="data/"):
 
     coco_dataset = get_data_loader(
                         dataset,
-                        batch_size=32)
+                        batch_size=128)
 
-    feature_extractor = FeatureExtractor(256).to(device)
-    caption_generator = CaptionGenerator(256, 512, len(dataset.vocabulary), 1).to(device)
+    encoder = FeatureExtractor(256).to(device)
+    decoder = CaptionGenerator(256, 512, len(dataset.vocabulary), 1).to(device)
 
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(caption_generator.parameters(), lr=0.001, momentum=0.9)
+    # params = list(decoder.parameters()) + list(encoder.linear.parameters()) + list(encoder.bn.parameters())
+    params = list(decoder.parameters()) + list(encoder.linear.parameters()) + list(encoder.bn.parameters())
+    optimizer = optim.Adam(params, lr=0.01)
 
     total_step = len(coco_dataset)
     for epoch in range(num_epochs):
-        for i, (images, captions, lengths) in enumerate(coco_dataset):
+        for i, (images, captions, descriptions) in enumerate(coco_dataset):
 
             # targets = pack_padded_sequence(caption, 0, batch_first=True)[0]
             
             images = images.to(device)
             captions = captions.to(device)
-            targets = pack_padded_sequence(captions, lengths, batch_first=True)[0]
+            # targets = pack_padded_sequence(captions, lengths, batch_first=True)[0]
 
-            features = feature_extractor(images)
-            outputs = caption_generator(features, captions, lengths)
+            features = encoder(images)
+            outputs = decoder(features, captions)
 
             loss = criterion(outputs.view(-1, len(dataset.vocabulary)), captions.view(-1))
+            # bleu = calculate_bleu(decoder, features, descriptions, coco_dataset)
+            # print(bleu)
 
-            caption_generator.zero_grad()
-            feature_extractor.zero_grad()
+            encoder.zero_grad()
+            decoder.zero_grad()
+            
             loss.backward()
             optimizer.step()
 
             # Print log info
+
             if i % 10 == 0:
                 print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}, Perplexity: {:5.4f}'
                       .format(epoch, num_epochs, i, total_step, loss.item(), np.exp(loss.item()))) 
                 
             # Save the model checkpoints
             if (i+1) % 1000 == 0:
-                torch.save(caption_generator.state_dict(), os.path.join(
+                torch.save(decoder.state_dict(), os.path.join(
                     "models", 'decoder-{}-{}.ckpt'.format(epoch+1, i+1)))
-                torch.save(feature_extractor.state_dict(), os.path.join(
+                torch.save(encoder.state_dict(), os.path.join(
                     "models", 'encoder-{}-{}.ckpt'.format(epoch+1, i+1)))
             
 
@@ -102,4 +114,4 @@ def main(num_epochs=1, data_dir="data/"):
     
 
 if __name__ == '__main__':
-    main()
+    main(num_epochs=5)

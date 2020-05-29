@@ -29,6 +29,8 @@ def create_vocabulary(coco):
         tokens = nltk.tokenize.word_tokenize(caption.lower())
         counter.update(tokens)
     vocabulary = [word for word, count in counter.items() if count >= 5]
+    vocabulary.append('<start>')
+    vocabulary.append('<end>')
     return vocabulary, ids
 
 

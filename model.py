@@ -12,7 +12,7 @@ class FeatureExtractor(nn.Module):
         modules = list(resnet.children())[:-1]      # delete the last fc layer.
         self.resnet = nn.Sequential(*modules)
         self.linear = nn.Linear(resnet.fc.in_features, embedding_dim)
-        # self.bn = nn.BatchNorm1d(embed_size, momentum=0.01)
+        self.bn = nn.BatchNorm1d(embedding_dim, momentum=0.01)
         
     def forward(self, images):
         """Extract feature vectors from input images."""
@@ -20,7 +20,7 @@ class FeatureExtractor(nn.Module):
             features = self.resnet(images)
         features = self.linear(features.reshape(features.size(0), -1))
         # features = features.reshape(features.size(0), -1)
-        # features = self.bn(self.linear(features))
+        features = self.bn(features)
         return features
 
 class CaptionGenerator(nn.Module):
@@ -31,7 +31,7 @@ class CaptionGenerator(nn.Module):
         self.lstm = nn.LSTM(embedding_dim, hidden_size, num_layers, batch_first=True)
         self.linear = nn.Linear(hidden_size, vocab_size)
         
-    def forward(self, features, captions, lengths):
+    def forward(self, features, captions):
         """Decode image feature vectors and generates captions."""
         captions = captions[:, :-1]
         embeddings = self.embed(captions)
