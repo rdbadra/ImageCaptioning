@@ -2,7 +2,7 @@ from pycocotools.coco import COCO
 from torchvision.datasets import CocoCaptions
 
 
-image_dir = "/home/roberto/Documentos/TFM-UOC/pytorch-tutorial/tutorials/03-advanced/image_captioning/data/"
+image_dir = "./data/"
 
 json =  image_dir + "annotations/captions_train2014.json"
 

@@ -29,9 +29,9 @@ def main(args):
         transforms.Normalize((0.485, 0.456, 0.406), 
                              (0.229, 0.224, 0.225))])
 
-    image_dir = "/home/roberto/Documentos/TFM-UOC/pytorch-tutorial/tutorials/03-advanced/image_captioning/data/"
+    image_dir = "data/"
     json_path =  image_dir + "annotations/captions_train2014.json"
-    root_dir = image_dir + "resized2014"
+    root_dir = image_dir + "train2014"
 
     dataset = CocoDataset(
                         json_path=json_path,

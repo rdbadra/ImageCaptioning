@@ -64,8 +64,8 @@ def main(num_epochs=1, data_dir="data/"):
                         dataset,
                         batch_size=128)
 
-    encoder = FeatureExtractor(256).to(device)
-    decoder = CaptionGenerator(256, 512, len(dataset.vocabulary), 1).to(device)
+    encoder = FeatureExtractor(embedding_dim).to(device)
+    decoder = CaptionGenerator(embedding_dim, 512, len(dataset.vocabulary), 1).to(device)
 
 
     criterion = nn.CrossEntropyLoss()
@@ -114,4 +114,4 @@ def main(num_epochs=1, data_dir="data/"):
     
 
 if __name__ == '__main__':
-    main(num_epochs=5)
+    main(num_epochs=5, embedding_dim=256)
