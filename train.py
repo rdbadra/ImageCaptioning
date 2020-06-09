@@ -11,7 +11,7 @@ from torchvision import transforms
 from tqdm import tqdm
 from evaluation import calculate_bleu
 
-def main(num_epochs=1, data_dir="data/"):
+def main(num_epochs=1, embedding_dim=256, data_dir="data/"):
     print("main")
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(f"WORKING WITH: {device}")

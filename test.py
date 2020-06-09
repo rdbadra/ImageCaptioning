@@ -1,21 +1,30 @@
 from pycocotools.coco import COCO
 from torchvision.datasets import CocoCaptions
+import matplotlib.pyplot as plt
 
 
 image_dir = "./data/"
 
-json =  image_dir + "annotations/captions_train2014.json"
-
-# self.coco = COCO(json_path)
+json_path =  image_dir + "annotations/captions_train2014.json"
 '''
+coco = COCO(json_path)
+img, target, description = coco[3]
+print(target)
+imgplot = plt.imshow(img)
+plt.show()
+'''
+
 import torchvision.transforms as transforms
 cap = CocoCaptions(root = image_dir+"train2014/",
-                        annFile = json)
+                        annFile = json_path)
 
 print('Number of samples: ', len(cap))
-img, target = cap[0] # load 4th sample
+img, target = cap[2] # load 4th sample
+
 print(target)
-'''
+imgplot = plt.imshow(img)
+plt.show()
+
 '''
 
 print(target)

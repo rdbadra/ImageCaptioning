@@ -25,6 +25,7 @@ class CocoDataset(Dataset):
         """
         self.coco = COCO(json_path)
         self.vocabulary, self.ids = create_vocabulary(self.coco)
+        print(f"VOCABULARY LENGTH: {len(self.vocabulary)}")
         self.word_to_ix = {}
         self.id_to_word = {}
         self.root_dir = root_dir
