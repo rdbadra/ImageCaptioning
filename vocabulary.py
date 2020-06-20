@@ -4,23 +4,19 @@ from collections import Counter
 import nltk
 nltk.download('punkt')
 
-
-image_dir = "/home/roberto/Documentos/TFM-UOC/pytorch-tutorial/tutorials/03-advanced/image_captioning/data/"
-
-json =  image_dir + "annotations/captions_train2014.json"
-
-'''
-print(len(ids))
-print(list(ids)[0])
-caption = str(coco.anns[48]['caption'])
-print(caption)
-tokens = nltk.tokenize.word_tokenize(caption.lower())
-print(tokens)
-counter.update(tokens)
-print(counter)
-'''
-
 def create_vocabulary(coco):
+    ''' Gets all the words from the COCO API to generate the vocabulary 
+    
+    Args:
+        coco: COCO
+            Instance of COCO, contains the relation between caption and image.
+    Returns:
+        vocabulary: List
+            List containing all the words in lowercase in the vocabulary that appear
+            ar least 5 times.
+        ids: List
+            List of containing the indices of all the captions
+    '''
     print("creating vocab")
     counter = Counter()
     ids = list(coco.anns.keys())
@@ -32,8 +28,3 @@ def create_vocabulary(coco):
     vocabulary.append('<start>')
     vocabulary.append('<end>')
     return vocabulary, ids
-
-
-if __name__ == '__main__':
-    image_dir = "/home/roberto/Documentos/TFM-UOC/pytorch-tutorial/tutorials/03-advanced/image_captioning/data/"
-    json_path =  image_dir + "annotations/captions_train2014.json"
