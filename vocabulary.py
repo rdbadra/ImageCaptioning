@@ -11,10 +11,10 @@ def create_vocabulary(coco):
         coco: COCO
             Instance of COCO, contains the relation between caption and image.
     Returns:
-        vocabulary: List
+        vocabulary: list
             List containing all the words in lowercase in the vocabulary that appear
             ar least 5 times.
-        ids: List
+        ids: list
             List of containing the indices of all the captions
     '''
     print("creating vocab")
