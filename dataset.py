@@ -82,6 +82,9 @@ class CocoDataset(Dataset):
         caption.append(self.word_to_ix['<start>'])
         caption.extend([self.word_to_ix[token] for token in tokens if token in self.vocabulary])
         caption.append(self.word_to_ix['<end>'])
+
+        tokens.insert(0, '<start>')
+        tokens.append('<end>')
         
 
         if self.transform:
@@ -107,7 +110,7 @@ def generate_batch(batch):
     batch.sort(key=lambda x: len(x[1]), reverse=True)
     images = [entry[0] for entry in batch]
     captions = [entry[1] for entry in batch]
-    descriptions = [entry[1] for entry in batch]
+    descriptions = [entry[2] for entry in batch]
 
     lengths = [len(cap) for cap in captions]
 
